@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
@@ -30,6 +30,7 @@ async function run() {
 
         const menuCollection = client.db("dineFineDB").collection("menu");
         const reviewCollection = client.db("dineFineDB").collection("reviews");
+        const cartCollection = client.db("dineFineDB").collection("carts");
 
         // get all menu
         app.get('/menu', async (req, res) => {
@@ -40,6 +41,31 @@ async function run() {
         // get all review
         app.get('/reviews', async (req, res) => {
             const result = await reviewCollection.find().toArray();
+            res.send(result);
+        })
+
+        // ----- cart -----------
+
+        // get carts
+        app.get('/carts', async(req,res)=>{
+            const email = req.query.email;
+            const query = {email: email}
+            const result = await cartCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // create cart
+        app.post('/carts', async (req, res) => {
+            const cartItem = req.body;
+            const result = await cartCollection.insertOne(cartItem);
+            res.send(result);
+        })
+
+        // cart delete
+        app.delete('/carts/:id', async(req,res)=>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await cartCollection.deleteOne(query);
             res.send(result);
         })
 
